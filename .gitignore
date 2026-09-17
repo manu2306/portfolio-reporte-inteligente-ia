@@ -1,0 +1,12 @@
+# Datos (pesados o generados, no se suben — se regeneran corriendo los scripts)
+data/
+
+# Variables de entorno (contiene la API key de Groq)
+.env
+
+# Cachés de Python
+__pycache__/
+*.pyc
+
+# Entorno virtual
+venv/
