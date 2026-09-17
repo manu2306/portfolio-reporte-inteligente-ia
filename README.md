@@ -2,6 +2,10 @@
 
 Pipeline automatizado que limpia y cruza datos de e-commerce, calcula métricas de atraso en las entregas, genera un informe ejecutivo con IA, lo grafica, y lo envía por email — todo orquestado con n8n, corriendo en local sin costo.
 
+## Demo
+
+[Ver el video de la demo](./Demo-video.mp4) — el workflow completo corriendo de punta a punta, desde el disparo manual hasta el mail con el informe y el gráfico.
+
 ## Pregunta guía
 
 ¿Cómo automatizar, de punta a punta, el análisis de atrasos en pedidos —desde los datos crudos hasta un informe ejecutivo en la bandeja de entrada— sin que alguien tenga que armarlo a mano cada vez?
@@ -61,6 +65,9 @@ Concentrar recursos logísticos y de gestión de inventario en las categorías c
 - Las métricas son instantáneas generadas corriendo los scripts de Python a mano — no se actualizan solas ni leen datos en vivo.
 - El trigger del workflow es manual, por decisión (para poder mostrarlo en la demo grabada).
 - Corre sobre las capas gratuitas de Groq y QuickChart, con los límites de uso que eso implica.
+
+## Autor
+Manuel Corzo
 
 ## Autor
 
