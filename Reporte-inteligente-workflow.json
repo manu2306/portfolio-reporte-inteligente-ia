@@ -1,0 +1,357 @@
+{
+  "name": "Reporte-inteligente-workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -192
+      ],
+      "id": "e03acad7-47a9-4398-a906-f058903ea968",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/data/{{ $json.archivo }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        -192
+      ],
+      "id": "3a348556-9f09-4d4e-9c07-b26572360fa0",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -192
+      ],
+      "id": "5cbe623e-7dcf-45ac-8456-7f9b2a3215bd",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const metricas = $input.first().json;\n\nconst promptText = `### ROL\nSos un analista de logística senior en una empresa de e-commerce, especializado\nen traducir datos operativos en informes ejecutivos claros, directos y accionables\npara la gerencia.\n\n### CONTEXTO\nLa gerencia necesita entender rápidamente el estado de los atrasos en la entrega\nde pedidos para tomar decisiones. A continuación se te proporcionarán los datos\nde atrasos por categoría de producto (porcentajes de atraso, volúmenes, u otras\nmétricas relevantes):\n\n${JSON.stringify(metricas, null, 2)}\n\n### TAREA\nCon base ÚNICAMENTE en los datos anteriores, escribí un resumen ejecutivo que cubra:\n1. Panorama general del nivel de atraso (visión agregada de la empresa).\n2. Las categorías de producto más problemáticas, citando sus porcentajes exactos\n   tal como aparecen en los datos.\n3. Las categorías con mejor desempeño, citando sus porcentajes exactos.\n4. Una recomendación concreta y cualitativa para la empresa (ej. \"priorizar\n   recursos en la categoría X\"), sin prometer porcentajes de mejora, plazos ni\n   metas que no estén respaldados por los datos.\n\n### FORMATO\n- Máximo 200 palabras.\n- Prosa ejecutiva (sin bullets salvo que ayuden a la claridad), tono directo y\n  profesional.\n- Cada cifra mencionada debe corresponder textualmente a un valor presente en\n  los datos de entrada.\n\n### REGLAS (restricciones anti-alucinación)\n- Usá ÚNICAMENTE los números provistos. Prohibido inventar, estimar, redondear\n  de forma engañosa o inferir cifras, porcentajes de mejora, objetivos o plazos\n  que no estén explícitamente en los datos.\n- Si un dato necesario para alguno de los 4 puntos no está presente, decilo\n  explícitamente en lugar de completarlo con una suposición.\n- Las recomendaciones deben ser cualitativas y accionables, nunca cuantitativas,\n  a menos que la meta cuantitativa ya esté en los datos.\n- No uses adjetivos exagerados (\"crítico\", \"alarmante\") a menos que estén\n  justificados directamente por la magnitud de los números dados.\n\n### EJEMPLOS\nMal (alucina una meta): \"Se recomienda reducir los atrasos en Electrónica en\nun 15% durante el próximo trimestre.\"\n\nBien (cualitativo, sin inventar cifras): \"Se recomienda priorizar recursos\nlogísticos en la categoría Electrónica, dado que concentra el mayor porcentaje\nde atraso (32%) según los datos actuales.\"`;\n\nreturn [{ json: { prompt: promptText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -96
+      ],
+      "id": "3d37772b-f07f-4030-9bde-23991efb4541",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"openai/gpt-oss-120b\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        400,
+        -96
+      ],
+      "id": "69cddd4e-8007-4a08-8a17-0c370fec8445",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SvvoSxctWwKc2HPn",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "400b68a8-954d-457f-99e4-c22149d34cc3",
+              "name": "informe_ejecutivo",
+              "value": "=  {{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        -96
+      ],
+      "id": "a8df363c-5a10-4a24-8ec8-fe55788339d4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6db64f71-16c0-42ad-a2c6-07aecba7b662",
+              "name": "archivo",
+              "value": "metricas_resumen_2018Q1.json",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -384,
+        -192
+      ],
+      "id": "9657e208-d76b-420e-a6a4-99271ece1a64",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const datos = $input.first().json.data;\n\nconst categorias = Object.keys(datos.top5_categorias_con_mas_atraso);\nconst porcentajes = categorias.map(\n  cat => datos.top5_categorias_con_mas_atraso[cat].porcentaje_atraso\n);\n\nconst chartConfig = {\n  type: \"bar\",\n  data: {\n    labels: categorias,\n    datasets: [\n      {\n        label: \"% de atraso\",\n        data: porcentajes,\n        backgroundColor: \"rgba(220, 53, 69, 0.7)\"\n      }\n    ]\n  },\n  options: {\n    title: {\n      display: true,\n      text: \"Top 5 categorías con más atraso\"\n    },\n    scales: {\n      yAxes: [\n        {\n          ticks: { beginAtZero: true }\n        }\n      ]\n    },\n    plugins: {\n      datalabels: {\n        display: true,\n        color: \"black\",\n        anchor: \"end\",\n        align: \"top\",\n        font: { weight: \"bold\" },\n        formatter: (value) => value + \"%\"\n      }\n    }\n  }\n};\n\nreturn [\n  {\n    json: {\n      chartConfig: chartConfig\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -256
+      ],
+      "id": "9157dc62-542a-4314-bdf8-3770b2f6616e",
+      "name": "Armar grafico"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://quickchart.io/chart",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chart\": {{ JSON.stringify($json.chartConfig) }},\n  \"width\": 500,\n  \"height\": 300,\n  \"backgroundColor\": \"white\",\n  \"format\": \"png\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        480,
+        -256
+      ],
+      "id": "ecebe201-665a-46ae-a448-fa28fc8fa65b",
+      "name": "Pedir grafico"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        -192
+      ],
+      "id": "1080d204-f2c3-4712-a0cb-92fbc7a4751b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fromEmail": "andinodigitalworks@gmail.com",
+        "toEmail": "demosmanuelcorzo@gmail.com",
+        "subject": "Informe Ejecutivo - Reporte Inteligente",
+        "emailFormat": "text",
+        "text": "=  {{ $json.informe_ejecutivo }}",
+        "options": {
+          "fileAttachments": "data"
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        -192
+      ],
+      "id": "34b7bcc0-5fa2-469b-91ed-ac12cf5fdf6e",
+      "name": "Send an Email",
+      "webhookId": "5bc9637a-69c7-4f00-af88-7f7010e1cf25",
+      "credentials": {
+        "smtp": {
+          "id": "datVRhg4YW1kWloF",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nitem.binary.data.fileName = \"grafico.png\";\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        -192
+      ],
+      "id": "5de7c09b-1f2d-4e62-a9c8-e6150a555b85",
+      "name": "Renombrar imagen"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Armar grafico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar grafico": {
+      "main": [
+        [
+          {
+            "node": "Pedir grafico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedir grafico": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Renombrar imagen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Renombrar imagen": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bdd25085-d921-4a6d-aef8-616f0560488f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b6d890e66d181dbc7d6ef2a3ff9f90a789673cb247ca0690999ee7e1e5539486"
+  },
+  "nodeGroups": [],
+  "id": "TcLa27vReacRSJQd",
+  "tags": []
+}
