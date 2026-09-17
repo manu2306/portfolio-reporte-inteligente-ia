@@ -23,7 +23,7 @@ reporte-inteligente/
 │ ├── 02_limpieza_union.py
 │ ├── 03_metricas.py
 │ └── 04_generar_informe.py
-├── workflow.json # workflow de n8n exportado
+├── Reporte-inteligente-workflow.json # workflow de n8n exportado
 ├── requirements.txt
 └── README.md
 ```
